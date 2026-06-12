@@ -1,5 +1,5 @@
-""""""""" Preprocess DICOMs to (size × size) float32 in [0, 1], ready for the VAE pipeline."""""""""
-
+#!/usr/bin/env python3
+"""DICOM → (1024, 1024) float32 in [0, 1] """
 
 import numpy as np
 import pydicom
