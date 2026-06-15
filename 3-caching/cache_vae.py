@@ -5,12 +5,11 @@ import torch
 from diffusers import AutoencoderKL
 from tqdm import tqdm
 
-_DIR        = Path(__file__).parent
-BM_ROOT     = _DIR.parent
-PARENT_ROOT = BM_ROOT.parent
+_DIR    = Path(__file__).parent
+BM_ROOT = _DIR.parent
 
-PREPROC_DIR = PARENT_ROOT / "dataset" / "preprocessed1024" / "train"
-OUT_DIR     = PARENT_ROOT / "dataset" / "cache" / "latents" / "train"
+PREPROC_DIR = BM_ROOT / "dataset" / "preprocessed1024" / "train"
+OUT_DIR     = BM_ROOT / "dataset" / "cache" / "latents" / "train"
 MODEL_PATH  = BM_ROOT / "models" / "sd3.5_medium.safetensors"
 
 SCALING_FACTOR = 1.5305
@@ -50,7 +49,7 @@ def main():
     if not PREPROC_DIR.exists():
         raise SystemExit(
             f"Preprocessed images not found: {PREPROC_DIR}\n"
-            "Run 2-preprocess_DICOM/preprocess_all.py first."
+            "Run 2-preprocess/preprocess.py first."
         )
 
     npy_files = sorted(PREPROC_DIR.rglob("*.npy"))

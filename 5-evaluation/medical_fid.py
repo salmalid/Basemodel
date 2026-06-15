@@ -105,7 +105,7 @@ def compute_fid(real_feats: np.ndarray, gen_feats: np.ndarray) -> float:
 
 def main():
     parser = argparse.ArgumentParser(description="Medical FID for BASEMODEL CXR generation")
-    parser.add_argument("--real",   default=str(BM_ROOT.parent / "dataset" / "preprocessed1024" / "train"),
+    parser.add_argument("--real",   default=str(BM_ROOT / "dataset" / "preprocessed1024" / "train"),
                         help="Directory of .npy real images")
     parser.add_argument("--gen",    default=str(BM_ROOT / "outputs"),
                         help="Directory of .png generated images")
@@ -190,3 +190,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+

@@ -1,18 +1,5 @@
-"""Cache text embeddings for the simple pathology-only captions.
-
-Reads  : BASEMODEL/dataset/captions_filtered.json
-Writes : BASEMODEL/dataset/cache/text/{stem}.pt
-
-Each .pt file contains:
-  prompt_embeds        (333, 4096) float16  — CLIP (77 tokens) + T5 (256 tokens)
-  pooled_prompt_embeds (2048,)     float16  — CLIP-L pool + CLIP-G pool
-
+"""
 T5_MAX is 256 instead of 512: short "Frontal CXR showing X" captions
-never exceed ~50 T5 tokens, so the extra 256 positions would be pure padding.
-
-These embeddings must be regenerated even if the parent project's text cache exists,
-because the captions are different ("Frontal CXR showing X" vs. the parent's
-detailed clinical captions).
 """
 import json
 import torch
@@ -105,8 +92,6 @@ cpu_clip_g_p = [None] * U
 cpu_t5_h     = [None] * U
 
 
-# ── Pass 1/3 — CLIP-L ─────────────────────────────────────────────────────────
-
 print("Pass 1/3 — CLIP-L")
 config_l = CLIPTextConfig.from_pretrained("openai/clip-vit-large-patch14")
 clip_l   = _load_weights(
@@ -127,7 +112,6 @@ del clip_l
 torch.cuda.empty_cache()
 
 
-# ── Pass 2/3 — CLIP-G ─────────────────────────────────────────────────────────
 
 print("Pass 2/3 — CLIP-G")
 config_g = CLIPTextConfig.from_pretrained(
@@ -151,7 +135,6 @@ del clip_g
 torch.cuda.empty_cache()
 
 
-# ── Pass 3/3 — T5-XXL ────────────────────────────────────────────────────────
 
 print(f"Pass 3/3 — T5-XXL  (max_sequence_length={T5_MAX})")
 config_t5 = T5Config.from_pretrained("google/t5-v1_1-xxl")
@@ -172,7 +155,6 @@ del t5
 torch.cuda.empty_cache()
 
 
-# ── Save one .pt file per stem ─────────────────────────────────────────────────
 
 print(f"\nSaving {len(todo_stems):,} cache files ...")
 for stem, cap in zip(todo_stems, todo_captions):

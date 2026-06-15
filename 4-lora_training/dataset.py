@@ -7,10 +7,9 @@ from torch.utils.data import Dataset, DataLoader
 
 _DIR           = Path(__file__).parent
 BM_ROOT        = _DIR.parent
-PARENT_ROOT    = BM_ROOT.parent
 
 CAPTIONS_FILE  = BM_ROOT / "dataset" / "captions_filtered.json"
-LATENT_DIR     = PARENT_ROOT / "dataset" / "cache" / "latents" / "train"
+LATENT_DIR     = BM_ROOT / "dataset" / "cache" / "latents" / "train"
 TEXT_CACHE_DIR = BM_ROOT / "dataset" / "cache" / "text"
 
 EXPECTED_LATENT_SHAPE = (16, 128, 128)

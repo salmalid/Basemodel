@@ -37,7 +37,6 @@ VAL_DIR    = ROOT / "validation"
 CKPT_DIR.mkdir(exist_ok=True)
 LOG_DIR.mkdir(exist_ok=True)
 
-# ── Hyperparameters ───────────────────────────────────────────────────────────
 RANK           = 64
 LORA_ALPHA     = 64
 LORA_DROPOUT   = 0.1
@@ -65,12 +64,8 @@ CKPT_EVERY_STEPS = 50
 # ── wandb config ──────────────────────────────────────────────────────────────
 WANDB_ENTITY  = "salma-lidame-university-of-technology-belfort-montbeliard"
 WANDB_PROJECT = "basemodel-cxr-sd35"
-# Set WANDB_API_KEY as an environment variable (do not hardcode it here):
-#   $env:WANDB_API_KEY = "your_key"   (PowerShell, current session)
-# or add it permanently via System Properties → Environment Variables.
 
 
-# ── Sigma lookup helper ───────────────────────────────────────────────────────
 
 def get_sigmas(timesteps, sched, device, n_dim: int = 4):
     sigmas   = sched.sigmas.to(device=device, dtype=torch.float32)
@@ -155,7 +150,6 @@ def run_validation(transformer, vae, val_records, sched_ref, accelerator, epoch,
     accelerator.print(f"  Validation images -> {out_dir}")
 
 
-# ── Checkpoint helpers ────────────────────────────────────────────────────────
 
 def _save_resume(accelerator, meta_path, *, epoch, epoch_done, g_step, best_loss, no_improve, wandb_run_id):
     accelerator.wait_for_everyone()
@@ -174,7 +168,6 @@ def _save_resume(accelerator, meta_path, *, epoch, epoch_done, g_step, best_loss
     accelerator.save_state(str(RESUME_DIR))
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
     torch.backends.cuda.enable_flash_sdp(False)
@@ -292,7 +285,6 @@ def main():
         transformer, optimizer, loader, lr_scheduler
     )
 
-    # ── Resume ────────────────────────────────────────────────────────────────
     resume_meta_path = RESUME_DIR / "training_meta.json"
     resume_meta      = None
     if RESUME_DIR.exists() and resume_meta_path.exists():
@@ -322,7 +314,6 @@ def main():
         no_improve    = 0
         prev_wandb_id = None
 
-    # ── wandb init (main process only) ────────────────────────────────────────
     wb_run = None
     if accelerator.is_main_process:
         wb_run = wandb.init(
