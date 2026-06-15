@@ -7,7 +7,7 @@ import torch.multiprocessing as mp
 sys.path.insert(0, os.path.dirname(__file__))
 
 WORLD_SIZE  = 2
-MASTER_ADDR = os.environ.get("MASTER_ADDR", "172.23.100.124")  # override with env var if IP changes
+MASTER_ADDR = os.environ.get("MASTER_ADDR", "172.23.100.124")  # override with env var when changes
 MASTER_PORT = os.environ.get("MASTER_PORT", "29501")
 
 
@@ -19,9 +19,6 @@ def _worker(rank: int) -> None:
         "MASTER_ADDR":                MASTER_ADDR,
         "MASTER_PORT":                MASTER_PORT,
         "ACCELERATE_MIXED_PRECISION": "fp16",
-        # Windows gloo always uses libuv transport (USE_LIBUV=0 is ignored).
-        # libuv requires an interface NAME; loopback crashes on the first
-        # all-reduce due to Windows socket limitations.
         "GLOO_SOCKET_IFNAME":         "Wi-Fi",
         "PYTORCH_CUDA_ALLOC_CONF":    "max_split_size_mb:128,garbage_collection_threshold:0.8",
     })
