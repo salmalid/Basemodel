@@ -7,11 +7,8 @@ import torch.multiprocessing as mp
 sys.path.insert(0, os.path.dirname(__file__))
 
 WORLD_SIZE  = 2
-# Use the literal Wi-Fi IP, not the hostname — hostname may resolve to
-# a domain-qualified FQDN with a different IP than the local Wi-Fi interface,
-# causing WSAEADDRNOTAVAIL on gloo data channels.
-MASTER_ADDR = "172.23.100.124"   # Wi-Fi interface IP (matches GLOO_SOCKET_IFNAME)
-MASTER_PORT = "29501"            # different port from parent project to avoid conflicts
+MASTER_ADDR = os.environ.get("MASTER_ADDR", "172.23.100.124")  # override with env var if IP changes
+MASTER_PORT = os.environ.get("MASTER_PORT", "29501")
 
 
 def _worker(rank: int) -> None:
