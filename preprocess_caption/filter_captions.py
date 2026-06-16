@@ -4,7 +4,7 @@ from pathlib import Path
 
 _DIR      = Path(os.path.dirname(os.path.abspath(__file__)))
 BM_ROOT   = _DIR.parent
-PNG_ROOT  = BM_ROOT.parent / "Data_original" / "png_chexpert_plus_chunk_4"
+PNG_ROOT  = BM_ROOT.parent / "Data_original" / "png_chexpert_plus"
 
 CAPTIONS = _DIR / "captions.json"
 OUTPUT   = BM_ROOT / "dataset" / "captions_filtered.json"

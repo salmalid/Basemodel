@@ -19,8 +19,8 @@ from transformers import (
 from diffusers import AutoencoderKL, FlowMatchEulerDiscreteScheduler, SD3Transformer2DModel
 
 ROOT       = Path(__file__).parent.parent
-MODEL_PATH = ROOT / "models" / "sd3.5_medium.safetensors"
-ENC_DIR    = ROOT / "models" / "text_encoders"
+MODEL_PATH = ROOT.parent / "models" / "sd3.5_medium.safetensors"
+ENC_DIR    = ROOT.parent / "models" / "text_encoders"
 LORA_DIR   = ROOT / "checkpoints" / "best"
 OUT_DIR    = ROOT / "outputs"
 GEN_CSV    = ROOT / "outputs" / "generations.csv"

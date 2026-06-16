@@ -1,0 +1,58 @@
+{
+  "Enlarged Cardiomediastinum": {
+    "caption": "Frontal CXR showing Enlarged Cardiomediastinum.",
+    "pt_path": "/mnt/c/Users/emadi/PFE-project/BASEMODEL/validation/cache/text/enlarged_cardiomediastinum.pt"
+  },
+  "Cardiomegaly": {
+    "caption": "Frontal CXR showing Cardiomegaly.",
+    "pt_path": "/mnt/c/Users/emadi/PFE-project/BASEMODEL/validation/cache/text/cardiomegaly.pt"
+  },
+  "Lung Opacity": {
+    "caption": "Frontal CXR showing Lung Opacity.",
+    "pt_path": "/mnt/c/Users/emadi/PFE-project/BASEMODEL/validation/cache/text/lung_opacity.pt"
+  },
+  "Lung Lesion": {
+    "caption": "Frontal CXR showing Lung Lesion.",
+    "pt_path": "/mnt/c/Users/emadi/PFE-project/BASEMODEL/validation/cache/text/lung_lesion.pt"
+  },
+  "Edema": {
+    "caption": "Frontal CXR showing Edema.",
+    "pt_path": "/mnt/c/Users/emadi/PFE-project/BASEMODEL/validation/cache/text/edema.pt"
+  },
+  "Consolidation": {
+    "caption": "Frontal CXR showing Consolidation.",
+    "pt_path": "/mnt/c/Users/emadi/PFE-project/BASEMODEL/validation/cache/text/consolidation.pt"
+  },
+  "Pneumonia": {
+    "caption": "Frontal CXR showing Pneumonia.",
+    "pt_path": "/mnt/c/Users/emadi/PFE-project/BASEMODEL/validation/cache/text/pneumonia.pt"
+  },
+  "Atelectasis": {
+    "caption": "Frontal CXR showing Atelectasis.",
+    "pt_path": "/mnt/c/Users/emadi/PFE-project/BASEMODEL/validation/cache/text/atelectasis.pt"
+  },
+  "Pneumothorax": {
+    "caption": "Frontal CXR showing Pneumothorax.",
+    "pt_path": "/mnt/c/Users/emadi/PFE-project/BASEMODEL/validation/cache/text/pneumothorax.pt"
+  },
+  "Pleural Effusion": {
+    "caption": "Frontal CXR showing Pleural Effusion.",
+    "pt_path": "/mnt/c/Users/emadi/PFE-project/BASEMODEL/validation/cache/text/pleural_effusion.pt"
+  },
+  "Pleural Other": {
+    "caption": "Frontal CXR showing Pleural Other.",
+    "pt_path": "/mnt/c/Users/emadi/PFE-project/BASEMODEL/validation/cache/text/pleural_other.pt"
+  },
+  "Fracture": {
+    "caption": "Frontal CXR showing Fracture.",
+    "pt_path": "/mnt/c/Users/emadi/PFE-project/BASEMODEL/validation/cache/text/fracture.pt"
+  },
+  "No Finding": {
+    "caption": "Frontal CXR showing No Finding.",
+    "pt_path": "/mnt/c/Users/emadi/PFE-project/BASEMODEL/validation/cache/text/no_finding.pt"
+  },
+  "Support Devices": {
+    "caption": "Frontal CXR showing Support Devices.",
+    "pt_path": "/mnt/c/Users/emadi/PFE-project/BASEMODEL/validation/cache/text/support_devices.pt"
+  }
+}

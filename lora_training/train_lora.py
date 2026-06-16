@@ -5,7 +5,6 @@ import datetime
 import json
 import math
 import os
-import random
 import sys
 
 import numpy as np
@@ -29,11 +28,12 @@ from peft import LoraConfig, get_peft_model
 from dataset import CXRDataset
 
 ROOT       = Path(__file__).parent.parent
-MODEL_PATH = ROOT / "models" / "sd3.5_medium.safetensors"
+MODEL_PATH = ROOT.parent / "models" / "sd3.5_medium.safetensors"
 CKPT_DIR   = ROOT / "checkpoints"
 RESUME_DIR = CKPT_DIR / "resume"
 LOG_DIR    = ROOT / "logs"
 VAL_DIR    = ROOT / "validation"
+VAL_CAPTIONS_FILE = VAL_DIR / "cached_val_captions.json"
 CKPT_DIR.mkdir(exist_ok=True)
 LOG_DIR.mkdir(exist_ok=True)
 
@@ -53,11 +53,11 @@ SHIFT_FACTOR   = 0.0609
 
 CFG_DROPOUT_PROB = 0.1
 
-VAL_EVERY_EPOCHS = 5
-VAL_STEPS        = 20
+VAL_EVERY_STEPS  = 500
+VAL_STEPS        = 28
 VAL_GUIDANCE     = 7.0
 VAL_SEED         = 0
-NUM_VAL_SAMPLES  = 3
+NUM_VAL_IMAGES   = 1   # keep validation light — it shares the GPU with live training state
 
 CKPT_EVERY_STEPS = 50
 
@@ -79,6 +79,23 @@ def get_sigmas(timesteps, sched, device, n_dim: int = 4):
 
 # ── Validation ────────────────────────────────────────────────────────────────
 
+def load_val_records() -> list:
+    """Fixed validation record(s) with text embeddings pre-cached by
+    validation/cache_val_captions.py — not a sample of training data.
+    Capped at NUM_VAL_IMAGES since validation shares the GPU with training."""
+    if not VAL_CAPTIONS_FILE.exists():
+        raise FileNotFoundError(
+            f"Missing {VAL_CAPTIONS_FILE} — run validation/cache_val_captions.py first."
+        )
+    with open(VAL_CAPTIONS_FILE, encoding="utf-8") as f:
+        index = json.load(f)
+    records = [
+        {"pathology": name, "text_path": entry["pt_path"], "caption": entry["caption"]}
+        for name, entry in index.items()
+    ]
+    return records[:NUM_VAL_IMAGES]
+
+
 @torch.no_grad()
 def run_validation(transformer, vae, val_records, sched_ref, accelerator, epoch, g_step, wb_run):
     if not accelerator.is_main_process:
@@ -91,14 +108,18 @@ def run_validation(transformer, vae, val_records, sched_ref, accelerator, epoch,
     out_dir = VAL_DIR / f"epoch_{epoch:03d}_step_{g_step}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    infer_sched = copy.deepcopy(sched_ref)
-    infer_sched.set_timesteps(VAL_STEPS, device=device)
-    infer_sched.sigmas = torch.cat([infer_sched.sigmas, infer_sched.sigmas.new_zeros(1)])
-
+    # Release cached-but-unused allocator blocks left over from training so
+    # the VAE (sharing the GPU with the live training state) has room to decode.
+    torch.cuda.empty_cache()
     vae.to(device)
     wandb_images = []
 
     for i, rec in enumerate(val_records):
+        # Fresh scheduler per image — its step-index state advances with each
+        # call to .step() and must not carry over between independent samples.
+        infer_sched = copy.deepcopy(sched_ref)
+        infer_sched.set_timesteps(VAL_STEPS, device=device)
+
         text = torch.load(rec["text_path"], weights_only=True)
         pe   = text["prompt_embeds"].unsqueeze(0).to(device, dtype)
         ppe  = text["pooled_prompt_embeds"].unsqueeze(0).to(device, dtype)
@@ -173,6 +194,12 @@ def main():
     torch.backends.cuda.enable_flash_sdp(False)
     torch.backends.cuda.enable_mem_efficient_sdp(True)
 
+    os.environ.setdefault("RANK", "0")
+    os.environ.setdefault("LOCAL_RANK", "0")
+    os.environ.setdefault("WORLD_SIZE", "1")
+    os.environ.setdefault("MASTER_ADDR", "127.0.0.1")
+    os.environ.setdefault("MASTER_PORT", "29500")
+
     on_linux     = sys.platform == "linux"
     dist_backend = "nccl" if on_linux else "gloo"
 
@@ -203,8 +230,7 @@ def main():
     loader  = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True,
                          num_workers=0, pin_memory=True)
 
-    rng         = random.Random(42)
-    val_records = rng.sample(dataset.records, min(NUM_VAL_SAMPLES, len(dataset.records)))
+    val_records = load_val_records()
 
     steps_per_epoch   = math.ceil(len(dataset) / (BATCH_SIZE * accelerator.num_processes))
     total_optim_steps = math.ceil(steps_per_epoch / GRAD_ACCUM) * NUM_EPOCHS
@@ -220,7 +246,7 @@ def main():
         f"LR       : {LR}  (constant after warmup)\n"
         f"LoRA     : rank={RANK}  alpha={LORA_ALPHA}\n"
         f"CFG drop : {CFG_DROPOUT_PROB:.0%}   weighting: logit_normal  shift=3.0\n"
-        f"Val      : every {VAL_EVERY_EPOCHS} epochs  ({NUM_VAL_SAMPLES} images, {VAL_STEPS} steps)\n"
+        f"Val      : every {VAL_EVERY_STEPS} steps  ({len(val_records)} image(s), {VAL_STEPS} steps)\n"
     )
 
     accelerator.print(f"Loading transformer from {MODEL_PATH.name} ...")
@@ -262,6 +288,7 @@ def main():
         )
         vae.requires_grad_(False)
         vae.eval()
+        vae.enable_tiling()  # keeps 1024px decode peak memory low — VAE shares the GPU with training state during validation
     else:
         vae = None
 
@@ -349,6 +376,12 @@ def main():
         with open(log_path, "w", newline="") as f:
             csv.writer(f).writerow(["epoch", "loss", "lr", "g_step", "best"])
 
+    if resume_meta is None:
+        accelerator.print("\nRunning baseline validation (base model, before any training) ...")
+        accelerator.wait_for_everyone()
+        run_validation(transformer, vae, val_records, sched_ref, accelerator, epoch=0, g_step=0, wb_run=wb_run)
+        accelerator.wait_for_everyone()
+
     for epoch in range(start_epoch, NUM_EPOCHS + 1):
         transformer.train()
         epoch_loss  = 0.0
@@ -357,7 +390,7 @@ def main():
         bar = tqdm(loader, desc=f"Ep {epoch:>3}/{NUM_EPOCHS}",
                    disable=not accelerator.is_main_process, leave=False)
 
-        for batch in bar:
+        for batch_idx, batch in enumerate(bar, start=1):
             with accelerator.accumulate(transformer):
                 x0  = batch["latents"].to(device, dtype=torch.float16)
                 pe  = batch["prompt_embeds"].to(device, dtype=torch.float16)
@@ -431,6 +464,13 @@ def main():
             bar.set_postfix(loss=f"{loss.item():.4f}",
                             lr=f"{optimizer.param_groups[0]['lr']:.2e}")
 
+            global_step = (epoch - 1) * steps_per_epoch + batch_idx
+            if global_step % VAL_EVERY_STEPS == 0:
+                accelerator.wait_for_everyone()
+                run_validation(transformer, vae, val_records, sched_ref,
+                               accelerator, epoch, g_step, wb_run)
+                accelerator.wait_for_everyone()
+
         avg_t   = torch.tensor(epoch_loss / max(epoch_steps, 1), device=device)
         avg     = accelerator.reduce(avg_t, reduction="mean").item()
         lr_now  = optimizer.param_groups[0]["lr"]
@@ -471,12 +511,6 @@ def main():
                      g_step=g_step, best_loss=best_loss,
                      no_improve=no_improve, wandb_run_id=wandb_run_id)
         accelerator.print(f"  -> epoch checkpoint saved  (checkpoints/resume)")
-
-        if epoch % VAL_EVERY_EPOCHS == 0:
-            accelerator.wait_for_everyone()
-            run_validation(transformer, vae, val_records, sched_ref,
-                           accelerator, epoch, g_step, wb_run)
-            accelerator.wait_for_everyone()
 
         if no_improve >= PATIENCE:
             accelerator.print(f"\nEarly stopping: no improvement for {PATIENCE} consecutive epochs.")

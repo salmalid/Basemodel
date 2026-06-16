@@ -1,9 +1,11 @@
 import json
+import math
+from collections import Counter
 from pathlib import Path
 
 import numpy as np
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 
 _DIR           = Path(__file__).parent
 BM_ROOT        = _DIR.parent
@@ -14,9 +16,49 @@ TEXT_CACHE_DIR = BM_ROOT / "dataset" / "cache" / "text"
 
 EXPECTED_LATENT_SHAPE = (16, 128, 128)
 
+# Must match preprocess_caption/write_captions.py — used to recover each
+# image's active pathologies from its caption text for repeat-factor sampling.
+PATHOLOGIES = [
+    "Enlarged Cardiomediastinum", "Cardiomegaly", "Lung Opacity", "Lung Lesion",
+    "Edema", "Consolidation", "Pneumonia", "Atelectasis", "Pneumothorax",
+    "Pleural Effusion", "Pleural Other", "Fracture",
+]
+
 
 def _text_stem(r: dict) -> str:
     return f"{r['patient_id']}_{r['study_id']}_{r['image_id']}"
+
+
+def _active_pathologies(caption: str) -> list:
+    cap = caption.lower()
+    return [p for p in PATHOLOGIES if p.lower() in cap]
+
+
+def _repeat_factor_weights(records: list) -> list:
+    """LVIS-style repeat-factor sampling.
+
+    Boosts images containing rare pathologies so they're drawn more often
+    per epoch, but the sqrt() caps the boost — without it, a class like
+    Pneumonia (~2.5% of images) would get ~24x the sampling weight of a
+    Lung-Opacity-only image, and training would just memorize that handful
+    of images instead of learning the pathology. sqrt() keeps it gentle
+    (~5x), biasing toward rare classes without overfitting to them.
+    """
+    n = len(records)
+    record_pathologies = [_active_pathologies(r["caption"]) for r in records]
+
+    freq = Counter()
+    for active in record_pathologies:
+        freq.update(active)
+    image_freq = {p: c / n for p, c in freq.items()}
+
+    t = max(image_freq.values())  # target = the most common pathology's frequency
+    cat_repeat = {p: max(1.0, math.sqrt(t / f)) for p, f in image_freq.items()}
+
+    return [
+        max((cat_repeat[p] for p in active), default=1.0)
+        for active in record_pathologies
+    ]
 
 
 class CXRDataset(Dataset):

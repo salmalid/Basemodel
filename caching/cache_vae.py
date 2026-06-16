@@ -10,7 +10,7 @@ BM_ROOT = _DIR.parent
 
 PREPROC_DIR = BM_ROOT / "dataset" / "preprocessed1024" / "train"
 OUT_DIR     = BM_ROOT / "dataset" / "cache" / "latents" / "train"
-MODEL_PATH  = BM_ROOT / "models" / "sd3.5_medium.safetensors"
+MODEL_PATH  = BM_ROOT.parent / "models" / "sd3.5_medium.safetensors"
 
 SCALING_FACTOR = 1.5305
 SHIFT_FACTOR   = 0.0609

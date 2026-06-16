@@ -1,6 +1,3 @@
-"""
-T5_MAX is 256 instead of 512: short "Frontal CXR showing X" captions
-"""
 import json
 import torch
 import torch.nn.functional as F
@@ -15,7 +12,7 @@ from transformers import (
 _DIR          = Path(__file__).parent
 BM_ROOT       = _DIR.parent
 
-ENC_DIR       = BM_ROOT / "models" / "text_encoders"
+ENC_DIR       = BM_ROOT.parent / "models" / "text_encoders"
 CAPTIONS_FILE = BM_ROOT / "dataset" / "captions_filtered.json"
 CACHE_DIR     = BM_ROOT / "dataset" / "cache" / "text"
 
