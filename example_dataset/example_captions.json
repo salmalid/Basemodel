@@ -1,0 +1,17 @@
+{"path_to_image": "train/patient49580/study1/view1_frontal.png", "caption": "Frontal CXR image: Cardiomegaly, Lung Opacity, Pleural Effusion"}
+{"path_to_image": "train/patient05363/study1/view1_frontal.png", "caption": "Frontal CXR image: Lung Opacity, Support Devices"}
+{"path_to_image": "train/patient02270/study3/view1_frontal.png", "caption": "Frontal CXR image: Cardiomegaly, Lung Opacity, Pleural Effusion, Support Devices"}
+{"path_to_image": "train/patient11903/study1/view1_frontal.png", "caption": "Frontal CXR image: Enlarged Cardiomediastinum, Lung Opacity"}
+{"path_to_image": "train/patient48726/study1/view1_frontal.png", "caption": "Frontal CXR image: Cardiomegaly, Edema, Lung Opacity, Support Devices"}
+{"path_to_image": "train/patient22659/study1/view1_frontal.png", "caption": "Frontal CXR image: Lung Opacity"}
+{"path_to_image": "train/patient50533/study1/view1_frontal.png", "caption": "Frontal CXR image: Pleural Effusion, Support Devices"}
+{"path_to_image": "train/patient13998/study2/view1_frontal.png", "caption": "Frontal CXR image: Edema, Support Devices"}
+{"path_to_image": "train/patient00033/study1/view1_frontal.png", "caption": "Frontal CXR image: Fracture"}
+{"path_to_image": "train/patient37562/study1/view1_frontal.png", "caption": "Frontal CXR image: Cardiomegaly, Edema, Support Devices"}
+{"path_to_image": "train/patient59273/study1/view1_frontal.png", "caption": "Frontal CXR image: Atelectasis, Pleural Effusion, Support Devices"}
+{"path_to_image": "train/patient19607/study1/view1_frontal.png", "caption": "Frontal CXR image: Lung Opacity, Pleural Effusion"}
+{"path_to_image": "train/patient18233/study1/view1_frontal.png", "caption": "Frontal CXR image: Enlarged Cardiomediastinum, Fracture"}
+{"path_to_image": "train/patient59315/study1/view1_frontal.png", "caption": "Frontal CXR image: Atelectasis, Lung Lesion, Support Devices"}
+{"path_to_image": "train/patient05324/study1/view1_frontal.png", "caption": "Frontal CXR image: Atelectasis, Lung Lesion, Pleural Other, Support Devices"}
+{"path_to_image": "train/patient40390/study1/view1_frontal.png", "caption": "Frontal CXR image: Edema, Lung Opacity, Pleural Effusion, Support Devices"}
+{"path_to_image": "train/patient38829/study2/view1_frontal.png", "caption": "Frontal CXR image: Lung Opacity, Pleural Effusion, Pneumothorax, Support Devices"}
